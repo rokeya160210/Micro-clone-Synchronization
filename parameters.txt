@@ -1,0 +1,2 @@
+system path = G:/Masters/systems/ctags
+change file path = changesCtags.txt

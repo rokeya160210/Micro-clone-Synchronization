@@ -1,0 +1,6 @@
+synchronization.SynchronizationForm$1
+synchronization.SynchronizationForm$4
+synchronization.MyOutputStream
+synchronization.SynchronizationForm$2
+synchronization.SynchronizationForm$3
+synchronization.SynchronizationForm
