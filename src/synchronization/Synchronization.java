@@ -2,7 +2,7 @@ package synchronization;
 import java.io.*;
 import javax.swing.JTextArea;
 import similarityanalysis.*;
-
+import java.util.*;
 
 public class Synchronization
 {
@@ -34,9 +34,11 @@ public class Synchronization
     }    
 }
 
+// Writer class generates a output file
+
 class Writer
 {
-    String outputfile = "output.txt";
+    String outputfile = "Updatedoutput.txt"; // output.txt converts into Updatedoutput.txt
     
     public void write (String str)
     {
@@ -78,6 +80,7 @@ class Fragment
     int linecount = 0;
     int revision = 0;
     Writer writer = new Writer ();
+    
     
     public void getlines ()
     {
@@ -140,6 +143,18 @@ class ChangeAnalysis
     Change [] changes = new Change[20000];
     int changecount = 0;
     
+    
+    int singleLineMC = 0;
+    int doubleLineMC = 0;
+    int trippleLineMC = 0;
+    int fourLineMC = 0;
+    
+    
+    int fiveLineRC = 0;
+    int tenLineRC = 0;
+    int fifteenLineRC = 0;
+    int twentyLineRC = 0;
+    
     String microclonefilepath = "";
     String changefilepath = "";
     int similaritythreshold = 80;
@@ -166,23 +181,41 @@ class ChangeAnalysis
     
     void analyzeChanges ()
     {
-        int lrev = changes[0].fragment1.revision;
-        int hrev = changes[changecount-1].fragment1.revision;
+        int lrev = changes[0].fragment1.revision; // strat 21 version
+         
+        
+        
+        int hrev = changes[changecount-1].fragment1.revision; // end 815 version
+        
+        //appendToTextArea("\n lrev" + lrev + " \n hrev" + hrev);
+        
         int start = 0;
         
         int tcm = 0, tcr = 0, csam = 0, ncsam = 0, csar = 0, ncsar = 0;
         
+                HashMap<Integer, Integer> countRC = new HashMap<Integer, Integer>();
+
+        
         for (int i =lrev;i<= hrev;i++)
         {
-            appendToTextArea ("\n\n\nworking on changes to revision = "+i);
+         // i === 21  
+           // appendToTextArea ("\n\n\nworking on changes to revision =/..........................working........ ");
+          appendToTextArea ("\n\n\nworking on changes to revision = "+i);
             
             Change [] m_changes = new Change[1000];
             Change [] r_changes = new Change[1000];
             
             int mchange_count = 0, rchange_count = 0;
+           // appendToTextArea("\n Chage Count " + changecount);
             
-            for (int j = start;j<changecount;j++)
+            //  Change Count 6642 == ntotal line number of changesCtags.txt file      
+        //appendToTextArea("\n print \n" + changes[0].fragment1.revision) == 21 
+        
+                        
+            for (int j = start;j<changecount;j++) 
             {
+                
+                
                 if (changes[j].fragment1.revision > i) { start = j; break; }
                 
                 if (changes[j].fragment1.revision == i)
@@ -190,9 +223,57 @@ class ChangeAnalysis
                     int rchange = 0, mchange = 0;
                     rchange = inRegularCloneUpdated(changes[j].fragment1);
                     mchange = inMicroCloneUpdated(changes[j].fragment1);
+                    int lineNumber = changes[j].fragment1.linecount;
+
+                    if (rchange == 1 && lineNumber > 4) {
+                        r_changes[rchange_count] = changes[j]; 
+                        rchange_count++;
+                        
+                        
+                        //key,value == line number, total repeation of line number
+                        // put == insert
+                        
+                        if(countRC.containsKey(lineNumber) ){
+                            countRC.put(lineNumber, countRC.get(lineNumber)+1);
+                            
+                            
+                        }else  {
+                                                    countRC.put(lineNumber,1);
+                                }
+                        
+                        
                     
-                    if (rchange == 1) { r_changes[rchange_count] = changes[j]; rchange_count++; }
-                    else { if (mchange == 1) { m_changes[mchange_count] = changes[j]; mchange_count++; } }
+                    }
+                    else { 
+                        if (mchange == 1) {
+                            m_changes[mchange_count] = changes[j];
+                            mchange_count++; 
+                            
+                            switch (changes[j].fragment1.linecount) {
+                            case 1:
+                                this.singleLineMC++;
+                                break;
+                            case 2:
+                                this.doubleLineMC++;
+                                break;
+                            case 3:
+                                this.trippleLineMC++;
+                                break;
+                            case 4:
+                                this.fourLineMC++;
+                                break;
+                            default:
+                                break;
+                        }
+                            
+
+//                        if(changes[j].fragment1.linecount > 4){
+//                        appendToTextArea(" \n revission number" + changes[j].fragment1.revision + "\n line count " + changes[j].fragment1.linecount);
+//                        break;
+//                        }
+                            
+                            
+                        } }
                 }
             }
             
@@ -214,10 +295,41 @@ class ChangeAnalysis
             String str5 = "regular changes that can be synchronized automatically = " + csar;
             String str6 = "regular changes that cannot be synchronized automatically = " + ncsar;            
             
+            
             String str7 = "\n\n"+str1+"\n"+str2+"\n"+str3+"\n"+str4+"\n"+str5+"\n"+str6;
             
             writer.write (str7);
-            appendToTextArea (str7);
+          appendToTextArea (str7);
+           
+          int totalRegularClone = 0;
+          
+          for(HashMap.Entry<Integer, Integer> e: countRC.entrySet()){
+          
+              appendToTextArea("\n Number of line number   "+ e.getKey()+" = total regular clone "+ e.getValue() );
+              totalRegularClone += e.getValue();
+          }  
+          
+            String countMicroLine = "\n\n \n number of one line micro-clone = "+ singleLineMC + 
+                    " \n number of two line micro-clone =  " + doubleLineMC + "\n number of three line micro-clone = " + trippleLineMC
+                    +"\n number of four line micro-clone = " + fourLineMC ;
+                    
+          appendToTextArea(countMicroLine);
+          
+          
+          // Verification
+          
+          int totalmicroclone = singleLineMC + doubleLineMC + trippleLineMC + fourLineMC;
+          
+          if(totalmicroclone == tcm){
+          appendToTextArea("\n total micro clone " +totalmicroclone +"  == tcm " + tcm);
+          }
+          
+          if(totalRegularClone == tcr){
+          appendToTextArea("\n total regular clone " + totalRegularClone+"  == tcr " + tcr);
+          }
+          
+          
+           
         }        
     }
     
@@ -260,6 +372,7 @@ class ChangeAnalysis
         int microclone_changepropagation = 0;
         int regularclone_changepropagation = 0;
         int microclone_change = 0, regularclone_change = 0;
+       // System.out.println(" Working Analyze changes");
         
         //csa = change that can be synchronized automatically.
         String csa_micro = "", ncsa_micro = "", csa_regular = "", ncsa_regular = "", tc_micro = "", tc_regular = "";
@@ -353,6 +466,8 @@ class ChangeAnalysis
 
             appendToTextArea (str13);
             
+            
+            
         }
         //writer.writeConsole ("similar count = "+similarcount);
         //writer.writeConsole ("count of changes in micro-clones = "+microclone_change);
@@ -416,24 +531,47 @@ class ChangeAnalysis
         int frev = fr1.revision;
         String fragmentfilepath1 = getFragmentFilePath (fr1);
         
-        String clonefilepath = systempath + "/repository/version-"+frev+"_blocks-blind-clones/version-"+frev+"_blocks-blind-clones-0.30.xml";
+       // appendToTextArea(frev+ "\n");
+       // appendToTextArea(fragmentfilepath1+ "\n"); 
         
+        // output of fragmentfilepath1 == /version-2/python.c 
+        
+        String clonefilepath = systempath + "/repository/version-"+frev+"_blocks-blind-clones/version-"+frev+"_blocks-blind-clones-0.30.xml";
+         //appendToTextArea(clonefilepath+ "\n"); 
         try
         {
             String str = "";
             BufferedReader br = new BufferedReader (new InputStreamReader (new FileInputStream (clonefilepath)));
             
+            
+            //<clone nlines="28" similarity="73"> ---clone nlines
+//<source file="G:/Masters/systems/ctags/repository/version-2/fortran.c" sl1---startline="1363" el1----endline="1382" pcid="272"/> ----str1
+//<source file="G:/Masters/systems/ctags/repository/version-2/fortran.c" sl2----startline="1608" el2----endline="1624" pcid="291"/>-----str2
+//</clone>
+            
             while ((str = br.readLine ())!= null)
             {
+                               
                 if (str.contains ("<clone nlines="))
                 {
                     String str1 = br.readLine ();
+                      //appendToTextArea(str1+ "\n");
+                    
                     String str2 = br.readLine ();
+                     //appendToTextArea(str2+ "\n");
+                    
                     
                     String f1 = "", f2 = "";
                     int sl1 = 0, sl2 = 0, el1 = 0, el2 = 0;
                     
+                     //appendToTextArea(str1 + "\n");
                     f1 = str1.split ("[\"]+")[1].trim();
+                    
+                    // output of f1 = G:/Masters/systems/ctags/repository/version-2/fortran.c
+                    
+                    // appendToTextArea(f1 + "\n");
+                    //start line == sl
+                    //end line == el
                     sl1 = Integer.parseInt (str1.split ("[\"]+")[3].trim());
                     el1 = Integer.parseInt (str1.split ("[\"]+")[5].trim());
                     
@@ -444,8 +582,75 @@ class ChangeAnalysis
                     if (el1-sl1+1 > 4) { continue; } //checking micro-clones
                     if (el2-sl2+1 > 4) { continue; } //checking micro-clones                    
                                                             
-                    if (f1.contains (fragmentfilepath1) && fr1.start >= sl1 && fr1.start <= el1) { return 1; }
-                    if (f2.contains (fragmentfilepath1) && fr1.start >= sl2 && fr1.start <= el2) { return 1; }                                                            
+                   
+                    
+                    if (f1.contains (fragmentfilepath1) && fr1.start >= sl1 && fr1.end <= el1) { 
+//                        
+//                       if(fr1.linecount>4){
+//                       appendToTextArea(" \n " +" \n start line1 " + sl1 + " \n  end line 1" +el1 + " \n  fragment file path1"
+//                               +fragmentfilepath1 + " \n file path xml " +f1 + 
+//                               " \n line count" +fr1.linecount +" \n revission" + fr1.revision);
+                        // }
+//                       int numberOfLines1 = el1-sl1+1;
+//                       
+//                        switch (numberOfLines1) {
+//                            case 1:
+//                                this.singleLineMC++;
+//                                break;
+//                            case 2:
+//                                this.doubleLineMC++;
+//                                break;
+//                            case 3:
+//                                this.trippleLineMC++;
+//                                break;
+//                            case 4:
+//                                this.fourLineMC++;
+//                                break;
+//                            default:
+//                                break;
+//                        }
+                        //singleLineMC++;
+                        
+                       
+                        return 1; }
+                    
+                    if (f2.contains (fragmentfilepath1) && fr1.start >= sl2 && fr1.end <= el2) { 
+                        
+                                //singleLineMC++;  
+                        
+//                        if(fr1.linecount>4){
+//                       appendToTextArea(" \n " +" \n start line1 = " + sl2 + " \n  end line 1= " +el2 + " \n  fragment file path1 = "
+//                               +fragmentfilepath1 + " \n file path 2 xml = " +f2 + 
+//                               " \n line count =  " +fr1.linecount +" \n revission = " + fr1.revision);
+//                       
+//                       
+//                       }
+                        
+
+//                      int numberOfLines2 = el2-sl2+1;
+//                       
+//                        switch (numberOfLines2) {
+//                            case 1:
+//                                this.singleLineMC++;
+//                                break;
+//                            case 2:
+//                                this.doubleLineMC++;
+//                                break;
+//                            case 3:
+//                                this.trippleLineMC++;
+//                                break;
+//                            case 4:
+//                                this.fourLineMC++;
+//                                break;
+//                            default:
+//                                break;
+//                        }
+                       
+                        
+                        return 1; } 
+                    
+                    
+                    
                 }
             }
             return 0;
@@ -562,8 +767,8 @@ class ChangeAnalysis
                     if (el2-sl2+1 <= 4) { continue; } //checking regular-clones 
                     
                     
-                    if (f1.contains (fragmentfilepath1) && fr1.start >= sl1 && fr1.start <= el1) { return 1; }
-                    if (f2.contains (fragmentfilepath1) && fr1.start >= sl2 && fr1.start <= el2) { return 1; }
+                    if (f1.contains (fragmentfilepath1) && fr1.start >= sl1 && fr1.end <= el1) { return 1; }
+                    if (f2.contains (fragmentfilepath1) && fr1.start >= sl2 && fr1.end <= el2) { return 1; }
                 }
             }
             return 0;
@@ -699,10 +904,16 @@ class ChangeAnalysis
         
         return 0;
     }
+    
+    //ChangesCtags.txt file line by line read korbe and  changestrings[changecount] = str or array te save korbe line gula index wise. Besides, total file e kotogula line ache segula count korbe;
 
     void getchanges ()
     {
         String filepath = this.changefilepath;
+        
+        //appendToTextArea(filepath + "\n");
+        //Output of the filePath is ChangesCtags.txt
+        
         try
         {
             BufferedReader br = new BufferedReader (new InputStreamReader (new FileInputStream (filepath)));
@@ -710,8 +921,10 @@ class ChangeAnalysis
 
             while ((str = br.readLine ()) != null)
             {
+                //appendToTextArea(str + "\n");
                 if (str.trim().length() > 0)
                 {
+                    
                     changestrings[changecount] = str;
                     changecount++;
                 }
@@ -722,6 +935,8 @@ class ChangeAnalysis
 
         }
     }
+    
+    // ChangesCtags file e total kotogula line ache ta changecount[] array te save thakbe
 
     void recordchanges ()
     {
@@ -729,6 +944,13 @@ class ChangeAnalysis
         {
             changes[i] = new Change ();
             recordchange (i);
+            
+            // after calling recordchanges we got both new version 22 and old version 21 of 
+            // cfilepath1;
+        //start = s1;
+        //end = e1;
+            
+            
             
             changes[i].fragment1.getlines();
             changes[i].fragment2.getlines();
@@ -758,14 +980,23 @@ class ChangeAnalysis
     void recordchange (int cindex)
     {
         String change = changestrings[cindex];
+        
+        // G:\Masters\systems\ctags\repository\version-21\regex.c; 2c2
+        
         String cfilepath = change.split("[;]+")[0].trim ();
         String temp = change.split("[;]+")[1].trim ();
         String temp1 = "", temp2 = "";
         String separator = "";
+        
+        // start = s, end = e
         int s1, e1, s2, e2;
         
-        if (temp.contains ("a")) { separator = "[a]+"; changes[cindex].changetype = 'a';}
+        if (temp.contains ("a")) { 
+            separator = "[a]+"; 
+        changes[cindex].changetype = 'a';
+        }
         if (temp.contains ("c")) { separator = "[c]+"; changes[cindex].changetype = 'c';}
+        
         if (temp.contains ("d")) { separator = "[d]+"; changes[cindex].changetype = 'd';}
 
         temp1 = temp.split (separator)[0];
@@ -803,6 +1034,10 @@ class ChangeAnalysis
         String vstring2 = "version-"+v2;
         cfilepath2 = cfilepath.replaceAll(vstring, vstring2);
         
+ // cfilepath1 = G:\Masters\systems\ctags\repository\version-21\regex.c, 2, 2  
+//cfilepath2 = G:\Masters\systems\ctags\repository\version-22\regex.c, 2, 2
+// Actually version 21 e j change ashce oita save korche and oi change hober jonno version 21 tokhon version 22 hosce
+        
         
         //now we have got the followings.
         //cfilepath1, s1, e1
@@ -811,14 +1046,18 @@ class ChangeAnalysis
         writer.write(cfilepath1 + ", "+s1 + ", " + e1);
         writer.write(cfilepath2 + ", "+s2 + ", " + e2);
         
-        appendToTextArea("\n"+cfilepath1 + ", "+s1 + ", " + e1);
-        appendToTextArea("\n"+cfilepath2 + ", "+s2 + ", " + e2);
+        // comment 824 to 827
+        //appendToTextArea("\n"+cfilepath1 + ", "+s1 + ", " + e1);
+        //appendToTextArea("\n"+cfilepath2 + ", "+s2 + ", " + e2);
         
         
         
+        // fragment1 hosce old version - ex- version 21
         changes[cindex].fragment1.filepath = cfilepath1;
         changes[cindex].fragment1.start = s1;
         changes[cindex].fragment1.end = e1;
+        
+        //fragment2 hosce new version - ex- version 22 
         
         changes[cindex].fragment2.filepath = cfilepath2;
         changes[cindex].fragment2.start = s2;
