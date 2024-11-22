@@ -166,6 +166,8 @@ public class SynchronizationForm extends javax.swing.JFrame {
         {
             public void run ()
             {
+               // System.out.println(systempath);
+                //System.out.print(changepath);
                 jButton1.setEnabled(false);
                 ChangeAnalysis ca = new ChangeAnalysis (systempath, changepath, similarity, textArea);
                 ca.getchanges ();

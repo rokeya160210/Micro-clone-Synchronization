@@ -38,8 +38,8 @@ public class Synchronization
 
 class Writer
 {
-    String outputfile = "Updatedoutput.txt"; // output.txt converts into Updatedoutput.txt
-    
+    String outputfile = "outputCtags.txt"; // output.txt converts into Updatedoutput.txt
+    String outputfile2 = "Updatedout-95-putJavaML.txt";
     public void write (String str)
     {
         try
@@ -47,6 +47,19 @@ class Writer
             BufferedWriter w = new BufferedWriter (new FileWriter (outputfile, true));            
             w.write ("\n"+str);
             w.close ();
+        }
+        catch (Exception e)
+        {
+            
+        }
+    }
+    public void writeOutputTextFile (String str  )
+    {
+        try
+        {
+            BufferedWriter w2 = new BufferedWriter (new FileWriter (outputfile2, true));            
+            w2.write ("\n"+str);
+            w2.close ();
         }
         catch (Exception e)
         {
@@ -158,11 +171,13 @@ class ChangeAnalysis
     String microclonefilepath = "";
     String changefilepath = "";
     int similaritythreshold = 80;
+    
     String systempath = "G:/Masters/systems/ctags";
     
     JTextArea textarea;
     
     Writer writer = new Writer ();
+    
     
     /*ChangeAnalysis (String changefile, String clonefile, int simthresh)
     {
@@ -195,12 +210,14 @@ class ChangeAnalysis
         
                 HashMap<Integer, Integer> countRC = new HashMap<Integer, Integer>();
 
-        
+        writer.writeOutputTextFile("\n\n\nworking on Threshold = 95 ");
+
         for (int i =lrev;i<= hrev;i++)
         {
          // i === 21  
            // appendToTextArea ("\n\n\nworking on changes to revision =/..........................working........ ");
-          appendToTextArea ("\n\n\nworking on changes to revision = "+i);
+          writer.writeOutputTextFile("\n\n\nworking on changes to revision = "+i);
+            appendToTextArea ("\n\n\nworking on changes to revision = "+i);
             
             Change [] m_changes = new Change[1000];
             Change [] r_changes = new Change[1000];
@@ -288,7 +305,7 @@ class ChangeAnalysis
             csar += Integer.parseInt(resultr.split("[,]+")[0].trim());
             ncsar += Integer.parseInt(resultr.split("[,]+")[1].trim());                        
                         
-            String str1 = "micro total changes = "+tcm;
+            String str1 = " micro total changes =  "+tcm;
             String str2 = "micro changes that can be synchronized automatically = " + csam;
             String str3 = "micro changes that cannot be synchronized automatically = " + ncsam;
             String str4 = "regular total changes = "+tcr;
@@ -296,9 +313,10 @@ class ChangeAnalysis
             String str6 = "regular changes that cannot be synchronized automatically = " + ncsar;            
             
             
-            String str7 = "\n\n"+str1+"\n"+str2+"\n"+str3+"\n"+str4+"\n"+str5+"\n"+str6;
+            String str7 = "\n\n"+str1+"\n"+str2+"\n"+str3+"\n"+str4+"\n"+str5+"\n"+str6 + "\n";
             
             writer.write (str7);
+            writer.writeOutputTextFile(str7);
           appendToTextArea (str7);
            
           int totalRegularClone = 0;
@@ -307,12 +325,13 @@ class ChangeAnalysis
           
               appendToTextArea("\n Number of line number   "+ e.getKey()+" = total regular clone "+ e.getValue() );
               totalRegularClone += e.getValue();
-          }  
+          }   
           
             String countMicroLine = "\n\n \n number of one line micro-clone = "+ singleLineMC + 
                     " \n number of two line micro-clone =  " + doubleLineMC + "\n number of three line micro-clone = " + trippleLineMC
                     +"\n number of four line micro-clone = " + fourLineMC ;
-                    
+            
+               writer.writeOutputTextFile(countMicroLine);
           appendToTextArea(countMicroLine);
           
           
@@ -343,6 +362,10 @@ class ChangeAnalysis
             for (int j =0;j<i;j++)
             {
                 float sim1 = getsimilarity (changes[i].fragment1.getline(), changes[j].fragment1.getline());
+                
+                //System.out.print(changes[i].fragment1.getline());
+                //System.out.print(changes[j].fragment1.getline());
+                
                 float sim2 = getsimilarity (changes[i].fragment2.getline(), changes[j].fragment2.getline());                
                 
                 if (sim1 == 1 && sim2 == 1)
@@ -405,6 +428,7 @@ class ChangeAnalysis
                     {                    
                         if (inmicroclone1 == 1 && inmicroclone2 == 1) { microclone_change++; }
                     }                   
+                    
                     
                     
                     float sim1 = getsimilarity (changes[i].fragment1.getline(), changes[j].fragment1.getline());
@@ -895,12 +919,18 @@ class ChangeAnalysis
     
     float getsimilarity (String str1, String str2)
     {
-        //SimilarityAnalysis sa = new SimilarityAnalysis ();
-        //double sim = sa.getStrikeAMatch(str1, str2);
+        SimilarityAnalysis sa = new SimilarityAnalysis ();
+        double sim = sa.getStrikeAMatch(str1, str2);
         
-        //if (sim >= this.similaritythreshold) { return 1; }
+        writer.writeOutputTextFile("\n Print String str1 :- \n " + str1);
+        writer.writeOutputTextFile("\n Print String str2 :- \n " + str2);
         
-        if (str1.equals(str2)) { return 1; }
+        appendToTextArea("Print String str1 :- \n " + str1);
+        appendToTextArea("\n Print String str2 :- \n " + str2);
+        
+        if (sim >= this.similaritythreshold) { return 1; }
+        
+        //if (str1.equals(str2)) { return 1; }
         
         return 0;
     }
@@ -911,7 +941,7 @@ class ChangeAnalysis
     {
         String filepath = this.changefilepath;
         
-        //appendToTextArea(filepath + "\n");
+       // appendToTextArea(filepath + "\n");
         //Output of the filePath is ChangesCtags.txt
         
         try
@@ -921,7 +951,7 @@ class ChangeAnalysis
 
             while ((str = br.readLine ()) != null)
             {
-                //appendToTextArea(str + "\n");
+               // appendToTextArea(str + "\n");
                 if (str.trim().length() > 0)
                 {
                     
@@ -932,7 +962,7 @@ class ChangeAnalysis
         }
         catch (Exception e)
         {
-
+        appendToTextArea(e+ "\n");
         }
     }
     
